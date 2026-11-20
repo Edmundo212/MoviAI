@@ -7,6 +7,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+# En Linux, el OpenSSL que trae OpenCV no encuentra los certificados del sistema
+# y falla al abrir streams HTTPS (cámaras en vivo). Le indicamos dónde están.
+_CA_BUNDLE = Path("/etc/ssl/certs/ca-certificates.crt")
+if not os.getenv("SSL_CERT_FILE") and _CA_BUNDLE.exists():
+    os.environ["SSL_CERT_FILE"] = str(_CA_BUNDLE)
+
 # --- Azure AI Vision (Computer Vision - Image Analysis 4.0) ---
 VISION_ENDPOINT = os.getenv("VISION_ENDPOINT", "")
 VISION_KEY = os.getenv("VISION_KEY", "")
