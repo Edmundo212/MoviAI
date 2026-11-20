@@ -1,0 +1,8 @@
+flask>=3.0
+azure-ai-vision-imageanalysis>=1.0.0
+opencv-python-headless>=4.9
+numpy>=1.26
+python-dotenv>=1.0
+pymongo>=4.6
+gunicorn>=22.0; sys_platform != "win32"
+waitress>=3.0; sys_platform == "win32"

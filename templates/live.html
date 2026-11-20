@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Live · {{ doc.nombre }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('index') }}" class="back">← Home</a>
+<div class="live-head">
+  <div>
+    <h1 class="page-title"><span class="dot" id="live-dot"></span> {{ doc.nombre }}</h1>
+    <p class="muted">{{ doc.fuente }} · analysed with <b>Azure Computer Vision</b></p>
+  </div>
+  <div class="live-meta">
+    <span class="badge" id="state">starting</span>
+    <span id="meta" class="muted"></span>
+    <button id="stop" class="btn-stop">Stop</button>
+  </div>
+</div>
+<p class="alert" id="err" hidden></p>
+
+<div class="live-grid">
+  <section class="card">
+    <div class="viewer">
+      <img id="live-img" alt="Live annotated frame">
+      <p class="muted" id="waiting">Connecting to camera and calling Azure Computer Vision…</p>
+    </div>
+    <div class="legend">
+      <span style="--c:#0aa5ff">Car</span><span style="--c:#ffc400">Motorcycle</span><span style="--c:#16a34a">Bus/van</span>
+      <span style="--c:#c026d3">Truck</span><span style="--c:#06b6d4">Bicycle</span><span style="--c:#ef4444">Pedestrian</span>
+    </div>
+    <p class="hint">Note: the general Azure Computer Vision model detects nearby vehicles reliably, but small or
+      tightly packed vehicles far from the camera may be missed, so queue counts are a lower bound.</p>
+  </section>
+
+  <aside>
+    <section class="card">
+      <h2>Recommended signal plan</h2>
+      <div id="plan" class="muted">Waiting for data…</div>
+    </section>
+    <section class="kpis kpis-2">
+      <div class="kpi"><span>Delay / person</span><b id="k-person">—</b><small id="k-person-sub"></small></div>
+      <div class="kpi"><span>Vehicles in frame</span><b id="k-veh">—</b><small id="k-veh-sub"></small></div>
+    </section>
+  </aside>
+</div>
+
+<section class="card">
+  <h2>Vehicles per approach over time</h2>
+  <canvas id="chart-timeline" height="90"></canvas>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  window.SESSION_ID = "{{ doc['_id'] }}";
+  window.STATIC_URL = "{{ url_for('static', filename='') }}";
+</script>
+<script src="{{ url_for('static', filename='js/live.js') }}"></script>
+{% endblock %}

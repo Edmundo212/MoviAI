@@ -1,0 +1,57 @@
+"""Configuración central de SmartFlow (se lee desde variables de entorno / .env)."""
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+
+# --- Azure AI Vision (Computer Vision - Image Analysis 4.0) ---
+VISION_ENDPOINT = os.getenv("VISION_ENDPOINT", "")
+VISION_KEY = os.getenv("VISION_KEY", "")
+# Plan gratuito F0: ~20 llamadas/minuto -> 1 llamada cada 3.1 s
+VISION_MIN_SECONDS_BETWEEN_CALLS = float(os.getenv("VISION_MIN_SECONDS_BETWEEN_CALLS", "3.1"))
+MIN_CONFIDENCE = float(os.getenv("MIN_CONFIDENCE", "0.5"))
+
+# --- Base de datos ---
+MONGODB_URI = os.getenv("MONGODB_URI", "")          # si está vacío se usa archivo JSON local
+MONGODB_DB = os.getenv("MONGODB_DB", "smartflow")
+
+# --- Procesamiento de video ---
+FRAME_INTERVAL_SECONDS = float(os.getenv("FRAME_INTERVAL_SECONDS", "3"))
+MAX_FRAMES = int(os.getenv("MAX_FRAMES", "40"))
+MAX_IMAGE_WIDTH = 1280
+
+# --- Carpetas ---
+UPLOAD_DIR = BASE_DIR / "uploads"
+RESULTS_DIR = BASE_DIR / "static" / "results"
+DATA_DIR = BASE_DIR / "data"
+ZONES_FILE = BASE_DIR / "zones.json"
+for d in (UPLOAD_DIR, RESULTS_DIR, DATA_DIR):
+    d.mkdir(parents=True, exist_ok=True)
+
+# --- Clases de vehículos ---
+# Etiquetas que devuelve Azure (en minúsculas) -> clase de SmartFlow.
+# Azure no conoce "combi" ni "mototaxi": suelen salir como van / car / motorcycle.
+LABEL_MAP = {
+    "car": "auto", "taxi": "auto", "land vehicle": "auto", "vehicle": "auto",
+    "wheeled vehicle": "auto", "suv": "auto", "sedan": "auto", "minivan": "auto",
+    "van": "bus", "minibus": "bus", "bus": "bus", "school bus": "bus",
+    "truck": "camion", "pickup truck": "camion", "trailer truck": "camion",
+    "motorcycle": "moto", "scooter": "moto", "motor scooter": "moto", "moped": "moto",
+    "bicycle": "bicicleta",
+    "person": "peaton",
+}
+
+# Unidades de auto equivalente (PCU) para el cálculo de ingeniería de tránsito.
+PCU = {"auto": 1.0, "moto": 0.5, "bus": 3.0, "camion": 2.0, "bicicleta": 0.2}
+
+# Ocupación promedio (personas por vehículo) para el modo "personas primero".
+OCCUPANCY = {"auto": 1.5, "moto": 1.2, "bus": 30.0, "camion": 1.2, "bicicleta": 1.0}
+
+# Colores para dibujar las cajas (BGR para OpenCV).
+CLASS_COLORS = {
+    "auto": (255, 170, 0), "moto": (0, 200, 255), "bus": (0, 220, 0),
+    "camion": (180, 0, 255), "bicicleta": (255, 255, 0), "peaton": (60, 60, 255),
+}

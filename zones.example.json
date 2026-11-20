@@ -1,0 +1,13 @@
+{
+  "_ayuda": "Copia como zones.json y ajusta los polígonos (coordenadas 0-1: x de izquierda a derecha, y de arriba a abajo) según el encuadre de tu cámara.",
+  "zones": {
+    "N": [[0, 0], [1, 0], [0.5, 0.5]],
+    "E": [[1, 0], [1, 1], [0.5, 0.5]],
+    "S": [[0, 1], [1, 1], [0.5, 0.5]],
+    "O": [[0, 0], [0, 1], [0.5, 0.5]]
+  },
+  "phases": {
+    "Norte-Sur": ["N", "S"],
+    "Este-Oeste": ["E", "O"]
+  }
+}
