@@ -2,12 +2,13 @@
 acceso y calcula el plan de semáforo. Se ejecuta en un hilo en segundo plano."""
 import traceback
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-from . import config, vision, webster, zones as zones_mod
+from . import config, detector, vision, webster, zones as zones_mod
 from .storage import store, now_iso
 
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
@@ -66,9 +67,7 @@ def draw(frame, detections, zone_polys):
     overlay = out.copy()
     for name, poly in zone_polys.items():
         pts = np.array([[int(x * w), int(y * h)] for x, y in poly], np.int32)
-        cv2.polylines(overlay, [pts], True, (255, 255, 255), 2)
-        cx, cy = pts.mean(axis=0).astype(int)
-        cv2.putText(overlay, name, (cx - 10 * len(name) // 2, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 3)
+        cv2.polylines(overlay, [pts], True, (255, 255, 255), 2, cv2.LINE_AA)
     out = cv2.addWeighted(overlay, 0.6, out, 0.4, 0)
     for d in detections:
         x, y, bw, bh = int(d["x"]), int(d["y"]), int(d["w"]), int(d["h"])
@@ -77,19 +76,23 @@ def draw(frame, detections, zone_polys):
             if top.size:
                 out[y:y + max(bh // 3, 1), x:x + bw] = cv2.GaussianBlur(top, (31, 31), 0)
         color = config.CLASS_COLORS.get(d["clase"], (255, 255, 255))
-        cv2.rectangle(out, (x, y), (x + bw, y + bh), color, 2)
-        label = f'{d["clase"]} {d["confianza"]:.2f}'
-        cv2.putText(out, label, (x, max(y - 6, 12)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-    cv2.putText(out, "Azure Computer Vision", (w - 260, h - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.rectangle(out, (x, y), (x + bw, y + bh), color, 2, cv2.LINE_AA)
     return out
 
 
+def models_label() -> str:
+    return "YOLOX + Azure Computer Vision" if detector.available() else "Azure Computer Vision"
+
+
 def analyze_frame(frame, zone_polys):
-    """Analiza un frame con Azure Computer Vision.
+    """Analiza un frame con Azure Computer Vision (siempre) y, si está disponible, con el
+    detector local YOLOX; une ambos resultados. Cada detección indica su "fuente".
     Devuelve (detecciones, conteo_por_zona, imagen_anotada)."""
     h, w = frame.shape[:2]
     _, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
     dets = vision.analyze_image(buf.tobytes(), w, h)
+    if detector.available():
+        dets = detector.fuse(dets, detector.detect_tiled(frame))
     per_zone = {a: defaultdict(int) for a in zone_polys}
     for d in dets:
         d["zona"] = zones_mod.assign_zone(d, w, h, zone_polys)
@@ -122,6 +125,19 @@ def totals_of(dets):
     return dict(t)
 
 
+def measurement(analysis_id, tipo, rec, dets, approach_counts, totals, plan, **extra) -> dict:
+    """Documento que se guarda en MongoDB por cada frame analizado."""
+    return {
+        "analisis_id": analysis_id, "tipo": tipo, "fecha": datetime.now(timezone.utc),
+        "conteo_por_acceso": rec["conteo"], "totales_frame": rec["totales"], "detecciones": len(dets),
+        "objetos": [{k: d.get(k) for k in ("clase", "confianza", "zona", "fuente", "x", "y", "w", "h")} for d in dets],
+        "detecciones_por_modelo": detector.source_counts(dets),
+        "modelos": models_label(),
+        "promedio_por_acceso": approach_counts, "promedio_total": totals,
+        "plan": plan, **extra,
+    }
+
+
 def process(analysis_id: str, path: Path, params: webster.SignalParams):
     try:
         zone_polys, phases = zones_mod.load_layout()
@@ -130,20 +146,27 @@ def process(analysis_id: str, path: Path, params: webster.SignalParams):
         out_dir = config.RESULTS_DIR / analysis_id
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        frames = []
+        frames, saved_count = [], 0
         for i, (sec, frame) in enumerate(iter_frames(path)):
             dets, per_zone, annotated = analyze_frame(frame, zone_polys)
             img_name = f"frame_{i:03d}.jpg"
             cv2.imwrite(str(out_dir / img_name), annotated)
-            frames.append({"segundo": round(sec, 1), "imagen": f"results/{analysis_id}/{img_name}",
-                           "conteo": per_zone, "totales": totals_of(dets), "detecciones": len(dets)})
-            store.update(analysis_id, {"frames_procesados": i + 1})
+            rec = {"segundo": round(sec, 1), "imagen": f"results/{analysis_id}/{img_name}",
+                   "conteo": per_zone, "totales": totals_of(dets), "detecciones": len(dets),
+                   "por_modelo": detector.source_counts(dets)}
+            frames.append(rec)
+            counts, totals, plan = aggregate(frames, zone_polys, phases, params)
+            saved_count += store.add_measurement(measurement(analysis_id, "video", rec, dets, counts, totals, plan,
+                                                      frame=i, segundo=rec["segundo"]))
+            store.update(analysis_id, {"frames_procesados": i + 1, "plan": plan,
+                                       "promedio_por_acceso": counts, "promedio_total": totals,
+                                       "mediciones_guardadas": saved_count})
 
         approach_counts, totals, plan = aggregate(frames, zone_polys, phases, params)
         store.update(analysis_id, {
             "estado": "listo", "terminado": now_iso(), "frames": frames,
             "promedio_por_acceso": approach_counts, "promedio_total": totals,
-            "fases": phases, "plan": plan,
+            "fases": phases, "plan": plan, "modelos": models_label(),
         })
     except Exception as e:
         traceback.print_exc()

@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}SmartFlow{% endblock %} · AI Adaptive Traffic Signals</title>
+  <title>{% block title %}Home{% endblock %} · SmartFlow</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 </head>
 <body>
   <header class="topbar">
@@ -12,12 +13,18 @@
       <span class="logo"><i class="r"></i><i class="y"></i><i class="g"></i></span>
       SmartFlow
     </a>
-    <span class="tagline">AI-powered adaptive traffic signals · Azure AI Vision · SDG 9</span>
+    <span class="tagline">Smarter traffic lights with artificial intelligence</span>
+    <button type="button" id="lang-toggle" class="lang-btn" aria-label="Language / Idioma">
+      <span data-lang="es">ES</span><span data-lang="en">EN</span>
+    </button>
   </header>
   <main class="container">
     {% block content %}{% endblock %}
   </main>
-  <footer class="footer">SmartFlow · WFEO Hackathon 2027 · Challenge 3: Smart, Digital and Data-Driven Transport</footer>
+  <footer class="footer">
+    <div>SmartFlow · WFEO Hackathon 2027 · Challenge 3: Smart, Digital and Data-Driven Transport</div>
+    <div class="credits">Powered by Azure AI Vision and YOLOX</div>
+  </footer>
   {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Live · {{ doc.nombre }}{% endblock %}
+{% block title %}{{ doc.nombre }}{% endblock %}
 {% block content %}
 <a href="{{ url_for('index') }}" class="back">← Home</a>
 <div class="live-head">
   <div>
     <h1 class="page-title"><span class="dot" id="live-dot"></span> {{ doc.nombre }}</h1>
-    <p class="muted">{{ doc.fuente }} · analysed with <b>Azure Computer Vision</b></p>
+    {% if doc.fuente %}<p class="muted">{{ doc.fuente }}</p>{% endif %}
   </div>
   <div class="live-meta">
-    <span class="badge" id="state">starting</span>
+    <span class="badge" id="state" data-state="starting">starting</span>
     <span id="meta" class="muted"></span>
     <button id="stop" class="btn-stop">Stop</button>
   </div>
@@ -17,26 +17,29 @@
 
 <div class="live-grid">
   <section class="card">
-    <div class="viewer">
-      <img id="live-img" alt="Live annotated frame">
-      <p class="muted" id="waiting">Connecting to camera and calling Azure Computer Vision…</p>
+    <div class="viewer live-viewer">
+      <img id="live-img" alt="Live camera">
+      <div class="hud" id="hud" hidden>
+        <span class="hud-live"><i></i>LIVE</span>
+      </div>
+      <p class="muted" id="waiting">Connecting to the camera…</p>
     </div>
     <div class="legend">
-      <span style="--c:#0aa5ff">Car</span><span style="--c:#ffc400">Motorcycle</span><span style="--c:#16a34a">Bus/van</span>
+      <span style="--c:#0aa5ff">Car</span><span style="--c:#ffc400">Motorcycle</span><span style="--c:#16a34a">Bus</span>
       <span style="--c:#c026d3">Truck</span><span style="--c:#06b6d4">Bicycle</span><span style="--c:#ef4444">Pedestrian</span>
     </div>
-    <p class="hint">Note: the general Azure Computer Vision model detects nearby vehicles reliably, but small or
-      tightly packed vehicles far from the camera may be missed, so queue counts are a lower bound.</p>
   </section>
 
   <aside>
     <section class="card">
-      <h2>Recommended signal plan</h2>
+      <h2>Traffic lights right now</h2>
       <div id="plan" class="muted">Waiting for data…</div>
     </section>
     <section class="kpis kpis-2">
-      <div class="kpi"><span>Delay / person</span><b id="k-person">—</b><small id="k-person-sub"></small></div>
-      <div class="kpi"><span>Vehicles in frame</span><b id="k-veh">—</b><small id="k-veh-sub"></small></div>
+      <div class="kpi"><span>Wait per person</span><b id="k-person">—</b><small id="k-person-sub"></small></div>
+      <div class="kpi"><span>Vehicles on screen</span><b id="k-veh">—</b><small id="k-veh-sub"></small></div>
+      <div class="kpi"><span>Next update</span><b id="k-next">—</b><small id="k-next-sub"></small></div>
+      <div class="kpi"><span>Records saved</span><b id="k-db">—</b><small id="k-db-sub"></small></div>
     </section>
   </aside>
 </div>
@@ -52,5 +55,6 @@
   window.SESSION_ID = "{{ doc['_id'] }}";
   window.STATIC_URL = "{{ url_for('static', filename='') }}";
 </script>
+<script src="{{ url_for('static', filename='js/signals.js') }}"></script>
 <script src="{{ url_for('static', filename='js/live.js') }}"></script>
 {% endblock %}

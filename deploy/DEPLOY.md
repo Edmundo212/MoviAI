@@ -60,6 +60,19 @@ Abre **http://<IP_PUBLICA>:8080/** — ¡listo! Verifica también `http://<IP_PU
 cd ~/MoviAI && git pull && .venv/bin/pip install -r requirements.txt && sudo systemctl restart smartflow
 ```
 
+### Si cambiaron `deploy/smartflow.service` o `deploy/nginx-smartflow.conf`
+(por ejemplo, la versión con video en vivo fluido usa 12 hilos y un stream MJPEG sin buffer)
+```bash
+cd ~/MoviAI
+sudo cp deploy/smartflow.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl restart smartflow
+sudo cp deploy/nginx-smartflow.conf /etc/nginx/sites-available/smartflow && sudo nginx -t && sudo systemctl reload nginx
+```
+
+## Ver datos en MongoDB
+- `smartflow_analyses`: un documento por análisis (resumen, plan final, timeline).
+- `smartflow_measurements`: una medición por frame analizado (conteos por acceso, objetos detectados,
+  promedios y plan de semáforo calculado en ese momento). También en `http://<IP>:8080/api/mediciones/<id>`.
+
 ## Ver errores
 ```bash
 sudo journalctl -u smartflow -n 100 --no-pager

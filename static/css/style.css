@@ -76,3 +76,49 @@ button:disabled { opacity: .6; cursor: wait; }
 .cycle-bar { display: flex; height: 64px; border-radius: 8px; overflow: hidden; font-size: .78rem; color: #fff; margin-bottom: 10px; }
 .cycle-bar > div { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2px; min-width: 0; }
 .cycle-bar .lost { background: #f59e0b; color: #111; }
+
+.row-2 { grid-template-columns: 1fr 1fr; }
+.footer .credits { font-size: .78rem; margin-top: 4px; opacity: .8; }
+.details-card summary { cursor: pointer; font-weight: 600; }
+.details-card[open] summary { margin-bottom: 12px; }
+.viewer + .legend { margin-top: 12px; }
+
+/* ---------- Language toggle ---------- */
+.lang-btn { margin-left: auto; width: auto; display: inline-flex; padding: 3px; gap: 2px; background: rgba(255,255,255,.15);
+            border-radius: 99px; font-size: .8rem; }
+.lang-btn span { padding: 4px 10px; border-radius: 99px; color: #cbd5e1; }
+.lang-btn span.on { background: #fff; color: var(--brand); }
+
+/* ---------- Smooth live video ---------- */
+.live-viewer { position: relative; }
+.live-viewer img { aspect-ratio: 16 / 9; object-fit: contain; display: block; }
+.hud { position: absolute; top: 10px; left: 10px; display: flex; gap: 8px; font-size: .78rem; font-weight: 600; }
+.hud span { background: rgba(15, 23, 42, .75); color: #fff; padding: 3px 9px; border-radius: 6px; }
+.hud-live i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 6px;
+              animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+#waiting { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #e2e8f0;
+           text-align: center; padding: 20px; margin: 0; }
+#waiting[hidden] { display: none; }
+.btn-play { width: auto; padding: 6px 14px; font-size: .85rem; }
+.kpi small b { font-size: inherit; display: inline; margin: 0; }
+
+/* ---------- Animated traffic lights ---------- */
+.tl-reason { margin: 0 0 12px; font-weight: 600; }
+.tl-list { display: flex; flex-direction: column; gap: 10px; }
+.signals .tl-list { flex-direction: row; flex-wrap: wrap; }
+.tl-card { display: flex; gap: 14px; align-items: center; padding: 10px 12px; border-radius: 10px; background: #f8fafc;
+           border: 2px solid transparent; transition: border-color .3s; flex: 1; min-width: 220px; }
+.tl-card.on { border-color: #22c55e; background: #f0fdf4; }
+.tl { background: #111; padding: 6px; border-radius: 10px; display: flex; flex-direction: column; gap: 5px; }
+.tl i { width: 18px; height: 18px; border-radius: 50%; display: block; background: #333; transition: all .2s; }
+.tl .r.lit { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+.tl .y.lit { background: #facc15; box-shadow: 0 0 10px #facc15; }
+.tl .g.lit { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+.tl-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tl-name { font-size: 1rem; }
+.tl-level { font-size: .8rem; font-weight: 600; }
+.tl-level.high { color: #dc2626; } .tl-level.mid { color: #d97706; } .tl-level.low { color: #16a34a; }
+.tl-state { font-size: 1.05rem; font-weight: 700; }
+.tl-state.g { color: #16a34a; } .tl-state.y { color: #ca8a04; } .tl-state.r { color: #dc2626; }
+.tl-cycle { margin: 10px 0 0; font-size: .85rem; }

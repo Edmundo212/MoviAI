@@ -7,48 +7,51 @@
 <section class="card" id="progress-card">
   <h2 id="status-text">Processing…</h2>
   <div class="progress"><div class="bar" id="bar"></div></div>
-  <p class="muted" id="progress-text">Waiting for Azure AI Vision…</p>
+  <p class="muted" id="progress-text">Preparing the analysis…</p>
 </section>
 
 <div id="results" hidden>
   <section class="kpis">
-    <div class="kpi"><span>Avg. delay per person</span><b id="k-person"></b><small id="k-person-sub"></small></div>
-    <div class="kpi"><span>Avg. delay per vehicle</span><b id="k-veh"></b><small id="k-veh-sub"></small></div>
+    <div class="kpi"><span>Wait per person</span><b id="k-person"></b><small id="k-person-sub"></small></div>
+    <div class="kpi"><span>Wait per vehicle</span><b id="k-veh"></b><small id="k-veh-sub"></small></div>
     <div class="kpi"><span>Recommended cycle</span><b id="k-cycle"></b><small id="k-cycle-sub"></small></div>
-    <div class="kpi"><span>Detected per frame</span><b id="k-det"></b><small id="k-det-sub"></small></div>
+    <div class="kpi"><span>Objects detected</span><b id="k-det"></b><small id="k-det-sub"></small></div>
   </section>
 
   <p class="alert" id="warn" hidden></p>
 
   <div class="grid-2">
     <section class="card">
-      <h2>Signal plan: fixed vs SmartFlow</h2>
+      <h2>Recommended traffic lights</h2>
       <div class="signals" id="signals"></div>
       <canvas id="chart-green" height="200"></canvas>
     </section>
     <section class="card">
-      <h2>Demand by approach (avg. per frame)</h2>
+      <h2>Traffic by street</h2>
       <canvas id="chart-approach" height="260"></canvas>
     </section>
   </div>
 
   <section class="card">
-    <h2>Detections (Azure AI Vision)</h2>
+    <h2>Detections</h2>
     <div class="viewer">
-      <img id="frame-img" alt="Annotated frame">
+      <img id="frame-img" alt="Intersection">
       <div class="viewer-ctrl">
+        <button type="button" id="play" class="btn-play">Play</button>
         <input type="range" id="frame-slider" min="0" value="0">
         <span id="frame-label"></span>
       </div>
     </div>
+    <div class="legend">
+      <span style="--c:#0aa5ff">Car</span><span style="--c:#ffc400">Motorcycle</span><span style="--c:#16a34a">Bus</span>
+      <span style="--c:#c026d3">Truck</span><span style="--c:#06b6d4">Bicycle</span><span style="--c:#ef4444">Pedestrian</span>
+    </div>
   </section>
 
-  <section class="card">
-    <h2>Engineering details</h2>
+  <details class="card details-card">
+    <summary>More details</summary>
     <table class="table" id="details"></table>
-    <p class="hint">Flows are estimated from observed queues (vehicles per frame × cycles per hour).
-      Delay uses Webster's formula (uniform + random terms). Saturation flow: 1800 PCU/h/lane.</p>
-  </section>
+  </details>
 </div>
 
 <section class="card" id="error-card" hidden>
@@ -62,5 +65,6 @@
   window.ANALYSIS_ID = "{{ doc['_id'] }}";
   window.STATIC_URL = "{{ url_for('static', filename='') }}";
 </script>
+<script src="{{ url_for('static', filename='js/signals.js') }}"></script>
 <script src="{{ url_for('static', filename='js/result.js') }}"></script>
 {% endblock %}

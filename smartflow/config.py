@@ -20,15 +20,34 @@ VISION_KEY = os.getenv("VISION_KEY", "")
 VISION_MIN_SECONDS_BETWEEN_CALLS = float(os.getenv("VISION_MIN_SECONDS_BETWEEN_CALLS", "3.1"))
 MIN_CONFIDENCE = float(os.getenv("MIN_CONFIDENCE", "0.5"))
 
+# --- Detector local complementario (YOLOX-S, ONNX con OpenCV) ---
+# Se usa JUNTO con Azure Computer Vision (no lo reemplaza): mejora la detección de vehículos
+# pequeños o lejanos. LOCAL_DETECTOR=0 para usar solo Azure.
+LOCAL_DETECTOR_ENABLED = os.getenv("LOCAL_DETECTOR", "1") not in ("0", "false", "no")
+LOCAL_MODEL_PATH = BASE_DIR / "models" / "yolox_s.onnx"
+LOCAL_MIN_CONFIDENCE = float(os.getenv("LOCAL_MIN_CONFIDENCE", "0.3"))
+LOCAL_TILES = os.getenv("LOCAL_TILES", "1") not in ("0", "false", "no")   # recortes ampliados
+# En vivo, las cajas del video se refrescan con YOLOX cada N segundos (sin gastar llamadas a Azure)
+LIVE_LOCAL_REFRESH_SECONDS = float(os.getenv("LIVE_LOCAL_REFRESH_SECONDS", "1.0"))
+
 # --- Base de datos ---
 MONGODB_URI = os.getenv("MONGODB_URI", "")          # si está vacío se usa archivo JSON local
 MONGODB_DB = os.getenv("MONGODB_DB", "smartflow")
 MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "smartflow_analyses")
+# Una medición por frame analizado (conteos + plan calculado)
+MONGODB_MEASUREMENTS_COLLECTION = os.getenv("MONGODB_MEASUREMENTS_COLLECTION", "smartflow_measurements")
 
 # --- Procesamiento de video ---
 FRAME_INTERVAL_SECONDS = float(os.getenv("FRAME_INTERVAL_SECONDS", "3"))
 MAX_FRAMES = int(os.getenv("MAX_FRAMES", "40"))
 MAX_IMAGE_WIDTH = 1280
+
+# --- Video en vivo fluido ---
+# El video se transmite (MJPEG) a LIVE_FPS aunque Azure solo analice un frame cada N segundos;
+# entre análisis las cajas siguen a los vehículos con flujo óptico (OpenCV, sin costo de API).
+LIVE_FPS = float(os.getenv("LIVE_FPS", "15"))
+LIVE_STREAM_WIDTH = int(os.getenv("LIVE_STREAM_WIDTH", "960"))
+LIVE_JPEG_QUALITY = int(os.getenv("LIVE_JPEG_QUALITY", "75"))
 
 # --- Carpetas ---
 UPLOAD_DIR = BASE_DIR / "uploads"

@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% macro signal_fields() %}
   <div class="row">
-    <label>Current fixed cycle (s)
+    <label>Current cycle (s)
       <input type="number" name="current_cycle" value="90" min="30" max="240">
     </label>
-    <label>Lanes per approach
+    <label>Lanes per street
       <input type="number" name="lanes" value="2" min="1" max="8">
     </label>
-    <label>Crossing width (m)
+    <label>Crosswalk width (m)
       <input type="number" name="crossing_width" value="12" min="4" max="60">
     </label>
   </div>
-  <label>Optimisation mode
+  <label>Priority
     <select name="mode">
-      <option value="personas">People-first (weights buses by passengers)</option>
-      <option value="pcu">Vehicle-based (passenger car units)</option>
+      <option value="personas">People first</option>
+      <option value="pcu">Vehicles first</option>
     </select>
   </label>
 {% endmacro %}
@@ -22,9 +22,8 @@
 {% block content %}
 <section class="hero">
   <h1>Make every green light count.</h1>
-  <p>SmartFlow watches intersections through existing traffic cameras. <strong>Azure Computer Vision</strong>
-     detects vehicles and pedestrians, counts demand on each approach and recommends optimal signal
-     timings using <strong>Webster's method</strong> — prioritising people, not just cars.</p>
+  <p>SmartFlow uses artificial intelligence on existing traffic cameras to count vehicles and pedestrians
+     and recommend better traffic light timings, putting people first, not just cars.</p>
 </section>
 
 <div class="grid-2">
@@ -35,44 +34,42 @@
       <label>Camera
         <select name="camera_id" id="camera_id">
           {% for c in cameras %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
-          <option value="">Custom camera URL…</option>
+          <option value="">Other camera…</option>
         </select>
       </label>
       <div id="custom-url" hidden>
-        <label>Camera URL (HLS .m3u8, RTSP, MJPEG or JPEG snapshot)
-          <input type="url" name="camera_url" placeholder="https://.../playlist.m3u8">
+        <label>Camera link
+          <input type="url" name="camera_url" placeholder="https://">
         </label>
         <label>Name <input type="text" name="nombre" placeholder="My intersection"></label>
       </div>
-      <div class="row">
-        <label>Analyse every (s)
+      <div class="row row-2">
+        <label>Update every (s)
           <input type="number" name="interval" value="10" min="4" max="120">
         </label>
         <label>Duration (min)
           <input type="number" name="duration" value="10" min="1" max="60">
         </label>
-        <label>&nbsp;<span class="hint" id="calls-hint"></span></label>
       </div>
       {{ signal_fields() }}
       <button type="submit">Start live analysis</button>
-      <p class="hint">Public cameras courtesy of Caltrans (California DOT). Each analysed frame = 1 Azure Computer Vision call.</p>
+      <p class="hint">Public cameras courtesy of Caltrans (California).</p>
     </form>
   </section>
 
   <section class="card">
-    <h2>Analyse a recorded video or photo</h2>
+    <h2>Analyse a video or photo</h2>
     {% if error %}<p class="alert">{{ error }}</p>{% endif %}
     <form action="{{ url_for('analizar') }}" method="post" enctype="multipart/form-data" class="js-form">
-      <label>Intersection video or image
+      <label>Video or photo of the intersection
         <input type="file" name="archivo" accept="video/*,image/*" required>
       </label>
       <label>Intersection name
         <input type="text" name="nombre" placeholder="e.g. Av. Javier Prado / Av. Arequipa">
       </label>
       {{ signal_fields() }}
-      <button type="submit">Analyse recording</button>
-      <p class="hint">Videos are sampled every {{ config.FRAME_INTERVAL_SECONDS|int }} s (max {{ config.MAX_FRAMES }} frames).
-        The original file is deleted after processing; faces are blurred.</p>
+      <button type="submit">Analyse</button>
+      <p class="hint">For privacy, the file is deleted after the analysis and faces are blurred.</p>
     </form>
   </section>
 </div>
@@ -81,15 +78,15 @@
   <h2>Recent analyses</h2>
   {% if historial %}
   <table class="table">
-    <thead><tr><th>Intersection</th><th>Type</th><th>Status</th><th>Delay reduction</th></tr></thead>
+    <thead><tr><th>Intersection</th><th>Type</th><th>Status</th><th>Time saved</th></tr></thead>
     <tbody>
     {% for h in historial %}
       <tr>
         <td><a href="{{ url_for('analisis', analysis_id=h['_id']) }}">{{ h.nombre }}</a><br>
-            <small>{{ h.creado[:16].replace('T', ' ') }} UTC</small></td>
-        <td>{{ h.tipo }}</td>
-        <td><span class="badge {{ h.estado|replace(' ', '-') }}">{{ h.estado }}</span></td>
-        <td>{% if h.plan and h.plan.ok %}<strong class="good">-{{ h.plan.demora_persona.mejora_pct }}%</strong> per person{% else %}—{% endif %}</td>
+            <small>{{ h.creado[:16].replace('T', ' ') }}</small></td>
+        <td data-state="{{ h.tipo }}">{{ h.tipo }}</td>
+        <td><span class="badge {{ h.estado|replace(' ', '-') }}" data-state="{{ h.estado }}">{{ h.estado }}</span></td>
+        <td>{% if h.plan and h.plan.ok %}<strong class="good">-{{ h.plan.demora_persona.mejora_pct }}%</strong> <span>per person</span>{% else %}—{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -102,25 +99,21 @@
 <section class="card how">
   <h2>How it works</h2>
   <ol class="steps">
-    <li><b>Capture</b> Existing CCTV, a public traffic camera or a low-cost camera records the intersection.</li>
-    <li><b>Detect</b> Azure Computer Vision finds cars, motorcycles, buses, trucks, bicycles and pedestrians.</li>
-    <li><b>Count</b> Each detection is assigned to an approach zone and converted to vehicle and people demand.</li>
-    <li><b>Optimise</b> Webster's method computes the optimal cycle and green split, with safe pedestrian minimums.</li>
+    <li><b>Capture</b> <span>A traffic camera records the intersection.</span></li>
+    <li><b>Detect</b> <span>Artificial intelligence recognises cars, motorcycles, buses, trucks, bicycles and pedestrians.</span></li>
+    <li><b>Count</b> <span>Vehicles and people are counted on each street.</span></li>
+    <li><b>Optimise</b> <span>SmartFlow recommends how long each green light should last, with safe crossing time for pedestrians.</span></li>
   </ol>
 </section>
 {% endblock %}
 {% block scripts %}
 <script>
   document.querySelectorAll('.js-form').forEach(f => f.addEventListener('submit', () => {
-    const b = f.querySelector('button'); b.disabled = true; b.textContent = 'Starting…';
+    const b = f.querySelector('button'); b.disabled = true; b.textContent = t('Starting…');
   }));
   const cam = document.getElementById('camera_id');
   const custom = document.getElementById('custom-url');
   const toggle = () => { custom.hidden = cam.value !== ''; custom.querySelector('input').required = cam.value === ''; };
   cam.addEventListener('change', toggle); toggle();
-  const iv = document.querySelector('[name=interval]'), du = document.querySelector('[name=duration]');
-  const calls = () => document.getElementById('calls-hint').textContent =
-    `≈ ${Math.ceil(du.value * 60 / Math.max(iv.value, 4))} API calls`;
-  iv.addEventListener('input', calls); du.addEventListener('input', calls); calls();
 </script>
 {% endblock %}

@@ -2,12 +2,19 @@
 
 Si MONGODB_URI está definido en .env se usa MongoDB; si no, un archivo JSON local
 (data/analyses.json). Ambas opciones tienen la misma interfaz.
+
+Además de un documento por análisis (colección MONGODB_COLLECTION), cada frame analizado
+se guarda como una "medición" en MONGODB_MEASUREMENTS_COLLECTION: conteos por acceso,
+totales, flujos y plan de semáforo calculado en ese momento.
 """
 import json
+import logging
 import threading
 from datetime import datetime, timezone
 
 from . import config
+
+log = logging.getLogger("smartflow.storage")
 
 
 class JsonStore:
@@ -40,11 +47,28 @@ class JsonStore:
         docs = sorted(self._read().values(), key=lambda d: d["creado"], reverse=True)
         return docs[:limit]
 
+    def add_measurement(self, doc: dict):
+        doc = {**doc, "fecha": doc["fecha"].isoformat(timespec="seconds")}
+        with self.lock, open(config.DATA_DIR / "measurements.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(doc, ensure_ascii=False) + "\n")
+        return True
+
+    def ping(self):
+        return True
+
+    name = "json-local"
+
 
 class MongoStore:
     def __init__(self, uri, db_name):
         from pymongo import MongoClient
-        self.col = MongoClient(uri, serverSelectionTimeoutMS=8000)[db_name][config.MONGODB_COLLECTION]
+        db = MongoClient(uri, serverSelectionTimeoutMS=8000)[db_name]
+        self.col = db[config.MONGODB_COLLECTION]
+        self.measurements = db[config.MONGODB_MEASUREMENTS_COLLECTION]
+        try:
+            self.measurements.create_index([("analisis_id", 1), ("fecha", 1)])
+        except Exception as e:      # sin conexión al arrancar: se reintenta en cada escritura
+            log.warning("MongoDB index not created: %s", e)
 
     def save(self, doc):
         self.col.replace_one({"_id": doc["_id"]}, doc, upsert=True)
@@ -56,7 +80,25 @@ class MongoStore:
         return self.col.find_one({"_id": analysis_id})
 
     def list(self, limit=50):
-        return list(self.col.find({}, {"frames": 0}).sort("creado", -1).limit(limit))
+        return list(self.col.find({}, {"frames": 0, "timeline": 0}).sort("creado", -1).limit(limit))
+
+    def add_measurement(self, doc):
+        """Guarda una medición; si MongoDB falla no detiene el análisis."""
+        try:
+            self.measurements.insert_one(dict(doc))
+            return True
+        except Exception as e:
+            log.warning("MongoDB measurement not saved: %s", e)
+            return False
+
+    def ping(self):
+        try:
+            self.col.database.client.admin.command("ping")
+            return True
+        except Exception:
+            return False
+
+    name = "mongodb"
 
 
 def now_iso():

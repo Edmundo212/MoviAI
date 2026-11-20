@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=azureuser
 WorkingDirectory=/home/azureuser/MoviAI
-ExecStart=/home/azureuser/MoviAI/.venv/bin/gunicorn -w 1 --threads 4 --timeout 120 -b 127.0.0.1:8000 app:app
+ExecStart=/home/azureuser/MoviAI/.venv/bin/gunicorn -w 1 --threads 12 --timeout 120 -b 127.0.0.1:8000 app:app
 Restart=always
 
 [Install]

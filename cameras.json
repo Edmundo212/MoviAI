@@ -4,7 +4,7 @@
     {
       "id": "caltrans-220",
       "name": "Los Angeles, CA – PCH (SR-1) & Crenshaw Blvd",
-      "source": "Caltrans CCTV 220 (public)",
+      "source": "Caltrans CCTV 220",
       "url": "https://wzmedia.dot.ca.gov/D7/CCTV-220.stream/playlist.m3u8",
       "zones": {
         "Crenshaw": [[0.22, 0.69], [0.63, 0.69], [0.67, 0.27], [0.59, 0.27]],
@@ -15,7 +15,7 @@
     {
       "id": "caltrans-223",
       "name": "Torrance, CA – Hawthorne Blvd (SR-107) & Torrance Blvd",
-      "source": "Caltrans CCTV 223 (public)",
+      "source": "Caltrans CCTV 223",
       "url": "https://wzmedia.dot.ca.gov/D7/CCTV-223.stream/playlist.m3u8",
       "zones": {
         "Hawthorne": [[0.50, 0.52], [0.86, 0.52], [0.96, 0.0], [0.63, 0.0]],

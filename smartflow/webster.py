@@ -64,7 +64,7 @@ def compute_plan(approach_stats: dict, phases: dict, p: SignalParams, pedestrian
     Y = sum(phase_y.values())
     L = p.lost_time_per_phase * len(phases)
     if Y <= 0:
-        return {"ok": False, "mensaje": "No se detectaron vehículos en las zonas de los accesos."}
+        return {"ok": False, "mensaje": "No vehicles detected yet."}
 
     oversaturated = Y >= 0.9
     cycle = (1.5 * L + 5) / (1 - min(Y, 0.9))
