@@ -98,6 +98,7 @@
     "Light traffic": "Tráfico bajo",
     "{n} vehicles": "{n} vehículos",
     "Green {g} s per cycle (current {f} s)": "Verde {g} s por ciclo (actual {f} s)",
+    "Each street keeps the minimum green so pedestrians can cross safely.": "Cada calle mantiene el verde mínimo para que los peatones crucen seguros.",
     "Traffic is balanced, so both streets get the same green time.": "El tráfico está equilibrado: ambas calles reciben el mismo tiempo en verde.",
     "{s} has more traffic, so it gets more green time.": "{s} tiene más tráfico, por eso recibe más tiempo en verde.",
     "Full cycle {c} s (current {f} s)": "Ciclo completo {c} s (actual {f} s)",

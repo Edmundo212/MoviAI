@@ -83,9 +83,11 @@
       });
       const busiest = segs.reduce((a, b) => (b.green > a.green ? b : a), segs[0]);
       const equal = segs.every((s) => Math.abs(s.green - busiest.green) < 1);
-      this.el.querySelector('[data-role="reason"]').textContent = equal
-        ? t("Traffic is balanced, so both streets get the same green time.")
-        : t("{s} has more traffic, so it gets more green time.", { s: tName(busiest.ph) });
+      const atMinimum = p.verde_minimo_peatonal && busiest.green <= p.verde_minimo_peatonal + 0.5;
+      this.el.querySelector('[data-role="reason"]').textContent = !equal
+        ? t("{s} has more traffic, so it gets more green time.", { s: tName(busiest.ph) })
+        : atMinimum ? t("Each street keeps the minimum green so pedestrians can cross safely.")
+        : t("Traffic is balanced, so both streets get the same green time.");
       this.el.querySelector('[data-role="cycle"]').textContent =
         t("Full cycle {c} s (current {f} s)", { c: Math.round(p.ciclo_recomendado), f: Math.round(p.ciclo_actual) });
     }
