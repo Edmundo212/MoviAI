@@ -9,7 +9,7 @@
    - Image: **Ubuntu Server 24.04 LTS**
    - Size: **Standard_B1s** o **B2s** (B1s es suficiente para la demo)
    - Authentication: **SSH public key**, usuario `azureuser` (descarga el archivo `.pem`)
-   - Inbound ports: **SSH (22)** y **HTTP (80)**
+   - Inbound ports: **SSH (22)** y **HTTP (80)**; luego agrega una regla para el puerto **8080** (Networking → Add inbound port rule)
 3. **Review + create → Create**. Copia la **IP pública**.
 
 ## 2. Conectarse
@@ -44,14 +44,16 @@ sudo systemctl status smartflow      # debe decir "active (running)"
 ```
 > Usar **1 worker** (`-w 1`): los análisis corren en hilos dentro del mismo proceso.
 
-## 6. Nginx (puerto 80)
+## 6. Nginx (puerto 8080)
+SmartFlow se publica en el puerto **8080** para convivir con otros sitios en el puerto 80.
 ```bash
 sudo cp deploy/nginx-smartflow.conf /etc/nginx/sites-available/smartflow
 sudo ln -sf /etc/nginx/sites-available/smartflow /etc/nginx/sites-enabled/smartflow
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t && sudo systemctl restart nginx
+sudo nginx -t && sudo systemctl reload nginx
 ```
-Abre **http://<IP_PUBLICA>/** — ¡listo! Verifica también `http://<IP_PUBLICA>/salud`.
+En el portal de Azure: VM → **Networking** → **Add inbound port rule** → puerto **8080**, TCP, Allow.
+
+Abre **http://<IP_PUBLICA>:8080/** — ¡listo! Verifica también `http://<IP_PUBLICA>:8080/salud`.
 
 ## 7. Actualizar después de cambios en GitHub
 ```bash
