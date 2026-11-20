@@ -23,6 +23,7 @@ MIN_CONFIDENCE = float(os.getenv("MIN_CONFIDENCE", "0.5"))
 # --- Base de datos ---
 MONGODB_URI = os.getenv("MONGODB_URI", "")          # si está vacío se usa archivo JSON local
 MONGODB_DB = os.getenv("MONGODB_DB", "smartflow")
+MONGODB_COLLECTION = os.getenv("MONGODB_COLLECTION", "smartflow_analyses")
 
 # --- Procesamiento de video ---
 FRAME_INTERVAL_SECONDS = float(os.getenv("FRAME_INTERVAL_SECONDS", "3"))

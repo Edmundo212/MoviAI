@@ -44,7 +44,7 @@ class JsonStore:
 class MongoStore:
     def __init__(self, uri, db_name):
         from pymongo import MongoClient
-        self.col = MongoClient(uri, serverSelectionTimeoutMS=8000)[db_name]["analyses"]
+        self.col = MongoClient(uri, serverSelectionTimeoutMS=8000)[db_name][config.MONGODB_COLLECTION]
 
     def save(self, doc):
         self.col.replace_one({"_id": doc["_id"]}, doc, upsert=True)
